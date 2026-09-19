@@ -200,3 +200,35 @@ input.addEventListener("input",()=>{active=-1;render(input.value);showSuggestion
   });
   render(input.value||"");
 })();
+
+/* Final rendering hardening: no emoji fonts, no external visual dependencies. */
+(function(){
+  var clean=function(s){
+    s=String(s==null?"":s);
+    return s.replace(/ðŸ[sS]{0,12}/g,"").replace(/Ã[sS]{0,8}/g,"").replace(/Â[sS]{0,8}/g,"").replace(/�/g,"").trim();
+  };
+  var art={Mammal:"assets/mammal.svg",Bird:"assets/bird.svg",Reptile:"assets/reptile.svg",Fish:"assets/fish.svg",Amphibian:"assets/amphibian.svg",Invertebrate:"assets/invertebrate.svg"};
+  var oldSearch=search;
+  search=function(q){
+    return oldSearch(q).map(function(a){
+      var b=Object.assign({},a);
+      b.name=clean(b.name);b.sci=clean(b.sci);b.group=clean(b.group);b.habitat=clean(b.habitat);b.diet=clean(b.diet);b.desc=clean(b.desc);b.traits=(b.traits||[]).map(clean);
+      return b;
+    });
+  };
+  render=function(q){
+    var found=search(q||"");
+    grid.innerHTML=found.map(function(a){
+      return '<article class="card" tabindex="0" role="button" aria-label="Explore '+esc2(a.name)+'"><div class="animal-art"><img src="'+art[a.group]+'" alt="" loading="lazy"></div><h3>'+esc2(a.name)+'</h3><div class="scientific">'+esc2(a.sci)+'</div><div class="tags"><span class="tag">'+esc2(a.group)+'</span><span class="tag">'+esc2(a.diet)+'</span></div><p class="description">'+esc2(a.desc)+'</p><div class="facts"><span>Habitat: '+esc2(a.habitat)+'</span>'+a.traits.slice(0,2).map(function(t){return '<span>• '+esc2(t)+'</span>';}).join("")+'</div></article>';
+    }).join("");
+    count.textContent=found.length+" animals";
+    if(status)status.textContent=q?'Results for "'+q+'"':'Showing all '+animals.length+' profiles';
+    if(empty)empty.hidden=found.length>0;
+  };
+  var baseShow=showSuggestions;
+  showSuggestions=function(q){
+    baseShow(q);
+    if(!suggestions.hidden)suggestions.querySelectorAll(".sicon").forEach(function(x){x.textContent="";});
+  };
+  render(input.value||"");
+})();
