@@ -1,11 +1,13 @@
 # Animal Wiki
-A modern, searchable animal encyclopedia built with plain HTML, CSS and JavaScript.
+A searchable animal encyclopedia hosted on GitHub Pages.
 
 ## Features
-- Search by animal, scientific name, animal group, habitat or diet
-- Mammals, birds, reptiles, amphibians, fish and invertebrates
-- Responsive mobile layout
-- No framework or build step required
-- GitHub Pages friendly
+- 100+ animal profiles across mammals, birds, reptiles, amphibians, fish and invertebrates
+- Fast client-side search with relevance ranking
+- Search by common name, scientific name, group, habitat, diet and traits
+- Autocomplete suggestions
+- Keyboard navigation and Ctrl/Cmd + K focus shortcut
+- Responsive design for phones and desktops
+- Plain HTML, CSS and JavaScript — no server required
 
-The library is a curated starter collection, not a complete catalog of every described animal species.
+GitHub Pages supports static HTML, CSS and JavaScript, so an additional server-side language is not necessary for the search system.
