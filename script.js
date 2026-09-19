@@ -166,3 +166,37 @@ input.addEventListener("input",()=>{active=-1;render(input.value);showSuggestion
   var initial=new URL(location.href).searchParams.get("q");if(initial){input.value=initial;render(initial);if(!search(initial).length)showError(initial);}
   window.animalWikiSearch=function(q){input.value=q||"";runSearch(input.value);};
 })();
+
+/* Clean Unicode-safe renderer for the redesigned UI */
+(function(){
+  var groupIcon={Mammal:"🐾",Bird:"🦅",Reptile:"🐊",Fish:"🐟",Amphibian:"🐸",Invertebrate:"🦋"};
+  function iconFor(a){return groupIcon[a.group]||"🐾";}
+  function esc2(s){return String(s).replace(/[&<>"]/g,function(m){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m];});}
+  render=function(q){
+    var found=search(q||"");
+    grid.innerHTML=found.map(function(a){
+      return '<article class="card" tabindex="0" role="button" aria-label="Explore '+esc2(a.name)+'"><div class="icon">'+iconFor(a)+'</div><h3>'+esc2(a.name)+'</h3><div class="scientific">'+esc2(a.sci)+'</div><div class="tags"><span class="tag">'+esc2(a.group)+'</span><span class="tag">'+esc2(a.diet)+'</span></div><p class="description">'+esc2(a.desc)+'</p><div class="facts"><span>📍 '+esc2(a.habitat)+'</span>'+a.traits.slice(0,2).map(function(t){return '<span>• '+esc2(t)+'</span>';}).join("")+'</div></article>';
+    }).join("");
+    count.textContent=found.length+" animals";
+    if(status)status.textContent=q?"Results for “"+q+"”":"Showing all "+animals.length+" profiles";
+    if(empty && !q)empty.hidden=found.length>0;
+    if(empty && q && found.length)empty.hidden=true;
+  };
+  showSuggestions=function(q){
+    if(!q.trim()){suggestions.hidden=true;return;}
+    var found=search(q).slice(0,7);
+    suggestions.innerHTML=found.map(function(a,i){
+      return '<button class="suggestion'+(i===active?" active":"")+'" data-name="'+esc2(a.name)+'"><span class="sicon">'+iconFor(a)+'</span><span><b>'+esc2(a.name)+'</b><small>'+esc2(a.group)+" • "+esc2(a.habitat)+'</small></span></button>';
+    }).join("");
+    suggestions.hidden=found.length===0;
+    suggestions.querySelectorAll(".suggestion").forEach(function(b){b.onclick=function(){input.value=b.dataset.name;active=-1;suggestions.hidden=true;render(input.value);document.querySelector("#explore").scrollIntoView({behavior:"smooth"});};});
+  };
+  document.querySelector(".search-submit")?.addEventListener("click",function(){runSearch(input.value.trim());});
+  document.querySelectorAll(".group-card").forEach(function(btn){btn.addEventListener("click",function(){input.value=btn.dataset.q;runSearch(btn.dataset.q);});});
+  document.querySelectorAll(".card").forEach(function(){});
+  document.addEventListener("keydown",function(e){
+    var card=document.activeElement;
+    if(e.key==="Enter" && card && card.classList && card.classList.contains("card"))card.click();
+  });
+  render(input.value||"");
+})();
