@@ -232,3 +232,109 @@ input.addEventListener("input",()=>{active=-1;render(input.value);showSuggestion
   };
   render(input.value||"");
 })();
+
+/* Full animal wiki pages */
+(function(){
+  if(document.getElementById("animalWikiPage")) return;
+  var page=document.createElement("section");
+  page.id="animalWikiPage";
+  page.className="animal-wiki-page";
+  page.hidden=true;
+  document.body.appendChild(page);
+
+  function esc(s){
+    return String(s==null?"":s).replace(/[&<>"]/g,function(m){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m];
+    });
+  }
+  function slug(s){return String(s).toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");}
+  function profile(a){
+    var traits=(a.traits||[]).map(function(t){return esc(t);});
+    return {
+      overview:esc(a.desc),
+      appearance:"This profile describes a "+esc(a.group).toLowerCase()+" known as "+esc(a.name)+". Its scientific name is "+esc(a.sci)+". Identification features and body form can vary across populations, subspecies, or related species.",
+      habitat:"The primary habitat recorded for this profile is "+esc(a.habitat)+". Habitat use can change with season, food availability, life stage, and local environmental conditions.",
+      diet:"The recorded diet is "+esc(a.diet)+". Feeding behavior depends on the species and its available food sources, and can change with age or season.",
+      behavior:traits.length?("Notable profile traits include "+traits.join(", ")+". These traits describe characteristic behavior, adaptations, or ecology associated with the animal."):"Behavior varies with habitat, season, age, and social context.",
+      reproduction:"Reproduction varies by species and population. This profile provides general educational information rather than a substitute for a species-specific scientific account.",
+      range:"The habitat entry gives the broad environment represented by this profile. The actual geographic range may be much more specific and can change over time as taxonomy and distribution data are updated.",
+      conservation:"Conservation status is species-specific and can change as assessments are updated. For current global extinction-risk information, check the latest IUCN Red List assessment.",
+      facts:"The short description and trait list above summarize the key facts currently stored in this Animal Wiki profile."
+    };
+  }
+  function renderWiki(a,push){
+    if(!a)return;
+    var p=profile(a);
+    page.innerHTML=
+      '<div class="wiki-shell">'+
+        '<header class="wiki-top">'+
+          '<button class="wiki-back" id="wikiBack" type="button">Back to Animal Wiki</button>'+
+          '<div class="wiki-breadcrumb">Animal Wiki / '+esc(a.group)+' / '+esc(a.name)+'</div>'+
+        '</header>'+
+        '<main class="wiki-main">'+
+          '<div class="wiki-hero">'+
+            '<div class="wiki-hero-art"><img src="'+({Mammal:"assets/mammal.svg",Bird:"assets/bird.svg",Reptile:"assets/reptile.svg",Fish:"assets/fish.svg",Amphibian:"assets/amphibian.svg",Invertebrate:"assets/invertebrate.svg"}[a.group]||"assets/mammal.svg")+'" alt=""></div>'+
+            '<div><p class="wiki-eyebrow">'+esc(a.group)+' profile</p><h1>'+esc(a.name)+'</h1><p class="wiki-scientific">'+esc(a.sci)+'</p><p class="wiki-lead">'+esc(a.desc)+'</p></div>'+
+          '</div>'+
+          '<div class="wiki-layout">'+
+            '<article class="wiki-article">'+
+              '<section><h2>Overview</h2><p>'+p.overview+'</p></section>'+
+              '<section><h2>Appearance and identification</h2><p>'+p.appearance+'</p></section>'+
+              '<section><h2>Habitat</h2><p>'+p.habitat+'</p></section>'+
+              '<section><h2>Diet and feeding</h2><p>'+p.diet+'</p></section>'+
+              '<section><h2>Behavior and adaptations</h2><p>'+p.behavior+'</p></section>'+
+              '<section><h2>Reproduction</h2><p>'+p.reproduction+'</p></section>'+
+              '<section><h2>Range</h2><p>'+p.range+'</p></section>'+
+              '<section><h2>Conservation</h2><p>'+p.conservation+'</p></section>'+
+              '<section><h2>Key facts</h2><p>'+p.facts+'</p></section>'+
+            '</article>'+
+            '<aside class="wiki-side">'+
+              '<div class="wiki-infobox"><h3>'+esc(a.name)+'</h3><img src="'+({Mammal:"assets/mammal.svg",Bird:"assets/bird.svg",Reptile:"assets/reptile.svg",Fish:"assets/fish.svg",Amphibian:"assets/amphibian.svg",Invertebrate:"assets/invertebrate.svg"}[a.group]||"assets/mammal.svg")+'" alt=""><dl>'+
+                '<dt>Scientific name</dt><dd><i>'+esc(a.sci)+'</i></dd>'+
+                '<dt>Group</dt><dd>'+esc(a.group)+'</dd>'+
+                '<dt>Habitat</dt><dd>'+esc(a.habitat)+'</dd>'+
+                '<dt>Diet</dt><dd>'+esc(a.diet)+'</dd>'+
+                '<dt>Profile traits</dt><dd>'+traits.join(", ")+'</dd>'+
+              '</dl></div>'+
+              '<button class="wiki-action" id="wikiTop" type="button">Back to top</button>'+
+            '</aside>'+
+          '</div>'+
+        '</main>'+
+      '</div>';
+    page.hidden=false;
+    document.body.classList.add("wiki-open");
+    document.title= a.name+" - Animal Wiki";
+    if(push) history.pushState({animal:slug(a.name)},"","#animal/"+slug(a.name));
+    page.querySelector("#wikiBack").onclick=function(){closeWiki(true);};
+    page.querySelector("#wikiTop").onclick=function(){page.scrollTop=0;window.scrollTo({top:0,behavior:"smooth"});};
+    window.scrollTo({top:0,behavior:"instant"});
+  }
+  function openWiki(a){renderWiki(a,true);}
+  function closeWiki(goBack){
+    page.hidden=true;
+    document.body.classList.remove("wiki-open");
+    document.title="Animal Wiki";
+    if(goBack){
+      if(history.state && history.state.animal) history.back();
+      else history.replaceState(null,"",location.pathname+location.search);
+    }
+  }
+  document.addEventListener("click",function(e){
+    var card=e.target.closest(".card");
+    if(!card || page.hidden)return;
+    var title=card.querySelector("h3");
+    var a=title && animals.find(function(x){return x.name===title.textContent.trim();});
+    if(a){e.preventDefault();openWiki(a);}
+  });
+  window.addEventListener("popstate",function(e){
+    if(e.state && e.state.animal){
+      var a=animals.find(function(x){return slug(x.name)===e.state.animal;});
+      if(a)renderWiki(a,false);
+    }else closeWiki(false);
+  });
+  var match=location.hash.match(/^#animal\/(.+)$/);
+  if(match){
+    var a=animals.find(function(x){return slug(x.name)===match[1];});
+    if(a){history.replaceState({animal:slug(a.name)},"",location.href);renderWiki(a,false);}
+  }
+})();
