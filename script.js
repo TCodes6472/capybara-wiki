@@ -320,12 +320,27 @@ input.addEventListener("input",()=>{active=-1;render(input.value);showSuggestion
     }
   }
   document.addEventListener("click",function(e){
-    var card=e.target.closest(".card");
-    if(!card || page.hidden)return;
+    if(page.hidden===false)return;
+    var card=e.target.closest && e.target.closest(".card");
+    if(!card)return;
     var title=card.querySelector("h3");
-    var a=title && animals.find(function(x){return x.name===title.textContent.trim();});
+    if(!title)return;
+    var clickedName=title.textContent.trim();
+    var a=animals.find(function(x){return String(x.name).trim()===clickedName;});
+    if(!a)return;
+    e.preventDefault();
+    e.stopPropagation();
+    openWiki(a);
+  },true);
+  document.addEventListener("keydown",function(e){
+    if(page.hidden===false)return;
+    if(e.key!=="Enter" && e.key!==" ")return;
+    var card=e.target.closest && e.target.closest(".card");
+    if(!card)return;
+    var title=card.querySelector("h3");
+    var a=title && animals.find(function(x){return String(x.name).trim()===title.textContent.trim();});
     if(a){e.preventDefault();openWiki(a);}
-  });
+  },true);
   window.addEventListener("popstate",function(e){
     if(e.state && e.state.animal){
       var a=animals.find(function(x){return slug(x.name)===e.state.animal;});
