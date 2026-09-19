@@ -1,9 +1,11 @@
-# Capybara Wiki
+# Animal Wiki
+A modern, searchable animal encyclopedia built with plain HTML, CSS and JavaScript.
 
-A polished, responsive capybara encyclopedia website.
+## Features
+- Search by animal, scientific name, animal group, habitat or diet
+- Mammals, birds, reptiles, amphibians, fish and invertebrates
+- Responsive mobile layout
+- No framework or build step required
+- GitHub Pages friendly
 
-## GitHub Pages
-Enable Pages from **Settings → Pages → Deploy from a branch → main → / (root)**.
-
-## Credits
-Background image is loaded from Unsplash at runtime. The footer links to TikTok `@toimhtues`.
+The library is a curated starter collection, not a complete catalog of every described animal species.
